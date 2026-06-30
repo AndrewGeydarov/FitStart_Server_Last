@@ -1,0 +1,65 @@
+@FitStart_Server_HostAddress = http://localhost:5275
+
+### Регистрация нового пользователя
+POST {{FitStart_Server_HostAddress}}/fitstart/signup
+Content-Type: application/json
+
+{
+  "lastName": "Иванов",
+  "name": "Алексей",
+  "patronymic": "Сергеевич",
+  "birthDate": "2000-05-15",
+  "email": "alex@example.com",
+  "password": "qwerty123"
+}
+
+### Авторизация
+POST {{FitStart_Server_HostAddress}}/fitstart/login
+Content-Type: application/json
+
+{
+  "email": "alex@example.com",
+  "password": "qwerty123"
+}
+
+### Получить главный экран
+GET {{FitStart_Server_HostAddress}}/fitstart/user/home/1
+Authorization: Bearer <TOKEN>
+
+### Получить активную подписку
+GET {{FitStart_Server_HostAddress}}/fitstart/subscription/active/1
+Authorization: Bearer <TOKEN>
+
+### Список тренеров
+GET {{FitStart_Server_HostAddress}}/fitstart/trainers
+
+### Расписание на день
+GET {{FitStart_Server_HostAddress}}/fitstart/schedule/1/date/2026-05-25
+Authorization: Bearer <TOKEN>
+
+### Записаться на занятие
+POST {{FitStart_Server_HostAddress}}/fitstart/schedule/signup
+Content-Type: application/json
+Authorization: Bearer <TOKEN>
+
+{
+  "userID": 1,
+  "scheduleID": 1
+}
+
+### Сгенерировать QR-пропуск
+POST {{FitStart_Server_HostAddress}}/fitstart/user/generatepass/1
+Authorization: Bearer <TOKEN>
+
+### Тренажёры
+GET {{FitStart_Server_HostAddress}}/fitstart/equipments
+
+### Упражнения
+GET {{FitStart_Server_HostAddress}}/fitstart/exercises
+
+### Тренировки (Action)
+GET {{FitStart_Server_HostAddress}}/fitstart/workouts/user/1
+Authorization: Bearer <TOKEN>
+
+### Загруженность клуба (понедельник = 1)
+GET {{FitStart_Server_HostAddress}}/fitstart/club/1/load/1
