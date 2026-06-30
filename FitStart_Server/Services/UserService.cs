@@ -333,10 +333,10 @@ namespace FitStart_Server.Services
                 var jsonResponse = System.Text.Json.JsonDocument.Parse(responseString);
                 var root = jsonResponse.RootElement;
 
+                string confirmationUrl = root.GetProperty("confirmation").GetProperty("confirmation_url").GetString();
+
                 user.Balance += model.Amount;
                 await _context.SaveChangesAsync();
-
-                string confirmationUrl = root.GetProperty("confirmation").GetProperty("confirmation_url").GetString();
 
                 return new OkObjectResult(new
                 {

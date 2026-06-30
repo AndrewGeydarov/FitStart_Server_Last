@@ -7,9 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="FileStorage\Новая папка\**" />
     <Compile Remove="wwwroot\**" />
+    <Content Remove="FileStorage\Новая папка\**" />
     <Content Remove="wwwroot\**" />
+    <EmbeddedResource Remove="FileStorage\Новая папка\**" />
     <EmbeddedResource Remove="wwwroot\**" />
+    <None Remove="FileStorage\Новая папка\**" />
     <None Remove="wwwroot\**" />
   </ItemGroup>
 
