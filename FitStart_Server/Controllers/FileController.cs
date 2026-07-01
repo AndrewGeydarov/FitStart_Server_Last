@@ -59,6 +59,20 @@ namespace FitStart_Server.Controllers
         }
 
         [HttpGet]
+        [Route("/fitstart/exercise/video/{ExerciseID}")]
+        public async Task<IActionResult> DownloadExerciseVideo(int ExerciseID)
+        {
+            return await _fileService.DownloadExerciseVideo(ExerciseID);
+        }
+
+        [HttpGet]
+        [Route("/fitstart/equipment/video/{EquipmentID}")]
+        public async Task<IActionResult> DownloadEquipmentVideo(int EquipmentID)
+        {
+            return await _fileService.DownloadEquipmentVideo(EquipmentID);
+        }
+
+        [HttpGet]
         [Route("/fitstart/workout/preview/{WorkoutID}")]
         public async Task<IActionResult> DownloadWorkoutPreview(int WorkoutID)
         {

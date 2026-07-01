@@ -334,15 +334,16 @@ namespace FitStart_Server.Services
                 var root = jsonResponse.RootElement;
 
                 string confirmationUrl = root.GetProperty("confirmation").GetProperty("confirmation_url").GetString();
-
-                user.Balance += model.Amount;
-                await _context.SaveChangesAsync();
+                string paymentId = root.TryGetProperty("id", out var idElement)
+                    ? idElement.GetString()
+                    : null;
 
                 return new OkObjectResult(new
                 {
                     status = true,
                     message = "Платеж создан",
-                    confirmationUrl = confirmationUrl
+                    confirmationUrl = confirmationUrl,
+                    paymentId = paymentId
                 });
             }
             catch (Exception ex)
@@ -351,6 +352,119 @@ namespace FitStart_Server.Services
                 {
                     status = false,
                     message = "Внутренняя ошибка при создании платежа: " + ex.Message
+                });
+            }
+        }
+
+        public async Task<IActionResult> ConfirmTopUp(ConfirmTopUpModel model)
+        {
+            if (model == null || string.IsNullOrWhiteSpace(model.PaymentId))
+            {
+                return new BadRequestObjectResult(new
+                {
+                    status = false,
+                    message = "Не указан идентификатор платежа"
+                });
+            }
+
+            var user = await _context.Users.FindAsync(model.UserID);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new
+                {
+                    status = false,
+                    message = "Пользователь не найден"
+                });
+            }
+
+            string shopId = "1396331";
+            string secretKey = "test_tBWd-HlZvzVVSGMIRv9GwTJOs837-aX1obM2CO_oFLQ";
+
+            try
+            {
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Basic", Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{shopId}:{secretKey}")));
+
+                var response = await httpClient.GetAsync($"https://api.yookassa.ru/v3/payments/{model.PaymentId}");
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new BadRequestObjectResult(new
+                    {
+                        status = false,
+                        message = "Платёж не найден в ЮKassa"
+                    });
+                }
+
+                var json = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
+                string paymentStatus = json.GetProperty("status").GetString();
+                bool paid = json.TryGetProperty("paid", out var paidElement) && paidElement.GetBoolean();
+
+                if (json.TryGetProperty("metadata", out var meta) &&
+                    meta.TryGetProperty("userId", out var uidElement) &&
+                    uidElement.GetString() != model.UserID.ToString())
+                {
+                    return new BadRequestObjectResult(new
+                    {
+                        status = false,
+                        message = "Платёж принадлежит другому пользователю"
+                    });
+                }
+
+                if (paymentStatus != "succeeded" || !paid)
+                {
+                    return new OkObjectResult(new
+                    {
+                        status = false,
+                        paid = false,
+                        balance = user.Balance,
+                        message = "Оплата ещё не завершена"
+                    });
+                }
+
+                if (!TopUpIdempotency.TryBeginCredit(model.PaymentId))
+                {
+                    return new OkObjectResult(new
+                    {
+                        status = true,
+                        alreadyProcessed = true,
+                        balance = user.Balance,
+                        message = "Баланс уже пополнен"
+                    });
+                }
+
+                double amount = double.Parse(
+                    json.GetProperty("amount").GetProperty("value").GetString(),
+                    System.Globalization.CultureInfo.InvariantCulture);
+                string paymentMethod = (json.TryGetProperty("metadata", out var meta2) &&
+                                        meta2.TryGetProperty("paymentMethod", out var pmElement))
+                    ? pmElement.GetString()
+                    : "ЮKassa";
+
+                user.Balance += amount;
+                await _context.Payments.AddAsync(new Payment
+                {
+                    UserID = user.UserID,
+                    Amount = amount,
+                    PaymentDate = DateTime.UtcNow,
+                    PaymentType = "TopUp",
+                    PaymentMethod = paymentMethod
+                });
+                await _context.SaveChangesAsync();
+
+                return new OkObjectResult(new
+                {
+                    status = true,
+                    balance = user.Balance,
+                    message = "Баланс пополнен"
+                });
+            }
+            catch (Exception ex)
+            {
+                return new BadRequestObjectResult(new
+                {
+                    status = false,
+                    message = "Ошибка при подтверждении платежа: " + ex.Message
                 });
             }
         }

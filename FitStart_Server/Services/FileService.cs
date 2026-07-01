@@ -13,7 +13,12 @@ namespace FitStart_Server.Services
         {
             { ".jpg", "image/jpg" },
             { ".jpeg", "image/jpeg" },
-            { ".png", "image/png" }
+            { ".png", "image/png" },
+            { ".gif", "image/gif" },
+            { ".webp", "image/webp" },
+            { ".mp4", "video/mp4" },
+            { ".webm", "video/webm" },
+            { ".mov", "video/quicktime" }
         };
 
         private readonly ContextDb _context;
@@ -206,6 +211,38 @@ namespace FitStart_Server.Services
             }
 
             return DownloadFromFolder(_exercisesPath, exercise.PhotoPath);
+        }
+
+        public async Task<IActionResult> DownloadExerciseVideo(int ExerciseID)
+        {
+            var exercise = await _context.Exercises.FindAsync(ExerciseID);
+            if (exercise == null)
+            {
+                return new NotFoundObjectResult(new
+                {
+                    status = false,
+                    message = "Упражнение не найдено"
+                });
+            }
+
+            // Видео/GIF-разбор лежит в той же папке упражнений, имя файла — в VideoPath.
+            return DownloadFromFolder(_exercisesPath, exercise.VideoPath);
+        }
+
+        public async Task<IActionResult> DownloadEquipmentVideo(int EquipmentID)
+        {
+            var equip = await _context.TrainingEquipments.FindAsync(EquipmentID);
+            if (equip == null)
+            {
+                return new NotFoundObjectResult(new
+                {
+                    status = false,
+                    message = "Тренажёр не найден"
+                });
+            }
+
+            // Видео/GIF-инструкция лежит в той же папке тренажёров, имя файла — в VideoPath.
+            return DownloadFromFolder(_equipmentPath, equip.VideoPath);
         }
 
         public async Task<IActionResult> DownloadWorkoutPreview(int WorkoutID)

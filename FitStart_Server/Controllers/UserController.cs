@@ -53,6 +53,14 @@ namespace FitStart_Server.Controllers
             return await _userService.TopUpBalance(model);
         }
 
+        [HttpPost]
+        [Route("/fitstart/user/topup/confirm")]
+        [RoleAuthorize([2])]
+        public async Task<IActionResult> ConfirmTopUp([FromBody] ConfirmTopUpModel model)
+        {
+            return await _userService.ConfirmTopUp(model);
+        }
+
         [HttpGet]
         [Route("/fitstart/user/balance/{UserID}")]
         [RoleAuthorize([2])]

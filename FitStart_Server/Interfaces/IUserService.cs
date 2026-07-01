@@ -10,6 +10,7 @@ namespace FitStart_Server.Interfaces
         Task<IActionResult> DeleteUser(int UserID);
         Task<IActionResult> ToggleVibration(ToggleVibrationModel model);
         Task<IActionResult> TopUpBalance(TopUpBalanceModel model);
+        Task<IActionResult> ConfirmTopUp(ConfirmTopUpModel model);
         Task<IActionResult> GetBalance(int UserID);
         Task<IActionResult> GetPaymentHistory(int UserID);
         Task<IActionResult> GeneratePass(int UserID);

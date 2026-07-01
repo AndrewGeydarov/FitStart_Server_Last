@@ -1,4 +1,4 @@
-using FitStart_Server.Requests;
+﻿using FitStart_Server.Requests;
 using FitStart_Server.ReturnModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +12,8 @@ namespace FitStart_Server.Interfaces
         Task<IActionResult> DownloadTrainerPhoto(int TrainerID);
         Task<IActionResult> DownloadEquipmentPhoto(int EquipmentID);
         Task<IActionResult> DownloadExercisePhoto(int ExerciseID);
+        Task<IActionResult> DownloadExerciseVideo(int ExerciseID);
+        Task<IActionResult> DownloadEquipmentVideo(int EquipmentID);
         Task<IActionResult> DownloadWorkoutPreview(int WorkoutID);
         Task<IActionResult> DownloadBannerImage(int BannerID);
         Task<IActionResult> DownloadClubPhoto(int ClubID);

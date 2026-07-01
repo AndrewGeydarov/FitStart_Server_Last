@@ -1,5 +1,6 @@
-using FitStart_Server.Connection;
+﻿using FitStart_Server.Connection;
 using FitStart_Server.Models;
+using FitStart_Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -36,6 +37,14 @@ namespace FitStart_Server.Controllers
                                 int userId = int.Parse(userIdProperty.GetString());
                                 double amount = double.Parse(paymentObject.GetProperty("amount").GetProperty("value").GetString(), System.Globalization.CultureInfo.InvariantCulture);
                                 string paymentMethod = metadata.TryGetProperty("paymentMethod", out var pmProperty) ? pmProperty.GetString() : "ЮKassa";
+
+                                string paymentId = paymentObject.TryGetProperty("id", out var idProperty)
+                                    ? idProperty.GetString()
+                                    : null;
+                                if (!TopUpIdempotency.TryBeginCredit(paymentId))
+                                {
+                                    return Ok();
+                                }
 
                                 var user = await _context.Users.FindAsync(userId);
                                 if (user != null)
